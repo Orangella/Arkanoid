@@ -1,4 +1,3 @@
-# Arkanoid
 Arkanoid game (Python)
 
 **arkanoid.py**
