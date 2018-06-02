@@ -1,7 +1,7 @@
 import sys, random, os
 from mimetypes import init
 from PyQt5.QtWidgets import QWidget, QMainWindow, QApplication, QAction, QLabel, QSpinBox, QSizePolicy, \
-    QPushButton, QFileDialog
+    QPushButton, QFileDialog, QColorDialog
 from PyQt5.QtGui import QPainter, QColor, QIcon, QFont
 from PyQt5.QtCore import Qt
 
@@ -85,6 +85,11 @@ class Main(QMainWindow):
         fileMenu.addAction(load)
         fileMenu.addAction(save)
         fileMenu.addAction(saveAs)
+
+        col_cube = create_action('Cells', self.color_cube)
+
+        colMenu = menubar.addMenu('&Color')
+        colMenu.addAction(col_cube)
 
         self.setGeometry(300, 300, 200, 230)
         self.setWindowTitle('Level Painter')
@@ -202,6 +207,12 @@ class Main(QMainWindow):
         else:
             return
 
+
+    def color_cube(self):
+        col = QColorDialog.getColor()
+        if col.isValid():
+            Painter.CELL_COLOR = col
+
     def point_action(self):
         self.change_button_state(POINT)
 
@@ -255,6 +266,7 @@ class Painter(QWidget):
 
     EMPTY_CUBE = 0
     FULL_CUBE = 1
+    CELL_COLOR = QColor(0x66CFFC)
     X = 0
     Y = 1
 
@@ -340,10 +352,8 @@ class Painter(QWidget):
         color1 = QColor(0xC0C0C0)
         if type == "e":
             color2 = QColor(0xFFFFFF)
-        elif type == "full":
-            color2 = QColor(0x66CFFC)
         else:
-            color2 = QColor(0x66CFFC)
+            color2 = Painter.CELL_COLOR
 
         painter.fillRect(x + 1, y + 1, self.squareWidth() - 2,
             self.squareHeight() - 2, color2)
