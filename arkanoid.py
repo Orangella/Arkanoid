@@ -6,17 +6,9 @@ from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, Q
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QPixmap
 
-"""
-    To play - open ark file created with level_painter
-    Bonus hint - scores increase if you gripe ball in a corner
-    When all the levels passed - game starts again with highter speed
-    Space for pause
-"""
-
 
 class Board(QFrame):
 
-    speed = 150
     platform_length = 0
     EMPTY_CUBE = 0
     FULL_CUBE = 1
@@ -27,6 +19,7 @@ class Board(QFrame):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.speed = 150
         self.parent = parent
         self.timer = QBasicTimer()
         self.is_started = 1
@@ -142,7 +135,7 @@ class Board(QFrame):
                 return
             else:
                 self.bonus_flag = 0
-                self.timer.start(Board.speed, self)
+                self.timer.start(self.speed, self)
         self.platform_x = x
         self.platform_move()
         self.update()
@@ -335,14 +328,14 @@ class Board(QFrame):
             self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
                                        str(self.cycle) + ")\n      "
                                        + str(self.score))
-            Board.speed = Board.speed // 2
+            self.speed = self.speed // 2
 
         for x, y in Board.init_spots[self.current_level]:
             self.set_cube_at(Board.FULL_CUBE, x, y)
 
         self.current_level_counts = Board.counts[self.current_level]
         self.set_cube_at(Board.FULL_CUBE, *self.ball.get_coords())
-        self.timer.start(Board.speed, self)
+        self.timer.start(self.speed, self)
         self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
                                    str(self.cycle) + ")\n      "
                                    + str(self.score))
@@ -356,7 +349,7 @@ class Board(QFrame):
             self.parent.pause.setText("Paused")
             self.parent.pause.setStyleSheet("background-color: yellow;")
         else:
-            self.timer.start(Board.speed, self)
+            self.timer.start(self.speed, self)
             self.parent.pause.setText("")
             self.parent.pause.setStyleSheet("")
         self.update()
@@ -527,13 +520,16 @@ class Arkanoid(QMainWindow):
             Board.ball_color = col
 
     def speed1_a(self):
-        Board.speed = 400
+        self.board.speed = 400
+        self.board.timer.start(self.board.speed, self.board)
 
     def speed2_a(self):
-        Board.speed = 150
+        self.board.speed = 150
+        self.board.timer.start(self.board.speed, self.board)
 
     def speed3_a(self):
-        Board.speed = 50
+        self.board.speed = 50
+        self.board.timer.start(self.board.speed, self.board)
 
     def new_game(self):
         self.pause_game()
