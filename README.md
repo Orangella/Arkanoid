@@ -10,6 +10,7 @@ Arkanoid game (Python)
 ***
 **level_painter.py**
 * Create new file (choose size of game field and number of levels) or load and edit existing file
+* Switch levels with SpinBox
 * Painter tools:
 1. Point - draw dots
 2. Brush - draw lines
