@@ -1,10 +1,10 @@
 import sys, random, os
 from mimetypes import init
-
 from PyQt5.QtWidgets import QWidget, QMainWindow, QApplication, QAction, QLabel, QSpinBox, QSizePolicy, \
     QPushButton, QFileDialog
 from PyQt5.QtGui import QPainter, QColor, QIcon, QFont
 from PyQt5.QtCore import Qt
+
 
 # tools
 POINT, BRUSH, RECTANGLE = [0, 1, 2]
@@ -203,13 +203,13 @@ class Main(QMainWindow):
             return
 
     def point_action(self):
-        self.change_button_state(0)
+        self.change_button_state(POINT)
 
     def brush_action(self):
-        self.change_button_state(1)
+        self.change_button_state(BRUSH)
 
     def rect_action(self):
-        self.change_button_state(2)
+        self.change_button_state(RECTANGLE)
 
     def change_buttons_image(self):
         def foo(i, action):
