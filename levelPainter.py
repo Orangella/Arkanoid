@@ -287,8 +287,8 @@ class Painter(QWidget):
         self.boards = []
         for i in range(lvl):
             self.boards.append([])
-            self.board = self.boards[i]
-            self.clear_board()
+            for _ in range(self.height * self.width):
+                self.boards[i].append(Painter.EMPTY_CUBE)
 
         self.board = self.boards[self.current_level]
         self.prevCube = None
@@ -303,22 +303,18 @@ class Painter(QWidget):
         self.board = self.boards[self.current_level]
         self.update()
 
-    def clear_board(self):
-        for i in range(self.height * self.width):
-            self.board.append(Painter.EMPTY_CUBE)
-
     def what_at(self, x, y):
         try:
             return self.board[(y * self.width) + x]
         except:
-            print(y, x)
+            pass
 
     def set_cube_at(self, cube, x, y):
         if x != self.width and x >= 0:
             try:
                 self.board[(y * self.width) + x] = cube
             except:
-                print(x, y, (y * self.width) + x)
+                pass
 
     def reverse_cube(self, x, y):
         if self.what_at(x, y) == Painter.EMPTY_CUBE:
