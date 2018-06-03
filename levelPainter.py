@@ -98,61 +98,15 @@ class Main(QMainWindow):
         self.show()
 
     def new_action(self):
-        class NewForm(QWidget):
-            def __init__(self):
-                super().__init__()
-
-                def create_label(x, y, text):
-                    label = QLabel(self)
-                    label.move(x, y)
-                    label.setText(text)
-                    label.setFont(QFont('', 10, QFont.Bold))
-                    return label
-
-                def create_spin_box(x, y, minim, maxim):
-                    sb = QSpinBox(self)
-                    sb.move(x, y)
-                    sb.setMinimum(minim)
-                    sb.setMaximum(maxim)
-                    return sb
-
-                def btn_click():
-                    main_window.painter.initUI(
-                        self.sbx.value(),
-                        self.sby.value(),
-                        self.sbn.value()
-                    )
-                    main_window.number_of_level.setMaximum(
-                        main_window.painter.levels)
-                    main_window.setCentralWidget(main_window.painter)
-                    main_window.filename = ''
-                    self.close()
-
-                self.label_size = create_label(95, 10, 'Size')
-                self.sbx = create_spin_box(65, 35, 10, 50)
-                self.label_x = create_label(108, 38, 'x')
-                self.sby = create_spin_box(120, 35, 10, 50)
-                self.labelcx = create_label(77, 58, 'X')
-                self.labelcy = create_label(132, 58, 'Y')
-                self.label_num = create_label(10, 83,
-                                              'Number of levels (1-15):')
-                self.sbn = create_spin_box(179, 81, 1, 15)
-                self.btn = QPushButton('OK', self)
-                self.btn.clicked.connect(btn_click)
-                self.btn.move(70, 110)
-                self.setGeometry(340, 340, 230, 140)
-                self.setWindowTitle('New Levels Settings')
-                self.setFocus()
-
         self.new_form = NewForm()
         self.new_form.show()
 
     def load_action(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
-        if fname:
-            self.filename = fname
-        else:
+        fname = QFileDialog.getOpenFileName(self, 'Open file',
+                                            filter = '*.ark')[0]
+        if not fname:
             return
+        self.filename = fname
 
         with open(self.filename, 'r') as f:
             w = int(f.readline())
@@ -162,10 +116,11 @@ class Main(QMainWindow):
             p.initUI(w, h, lvl)
 
             p.current_level = 0
-            for _ in f:
-                if _ != '$$$\n':
+            for line in f:
+                if line != '$$$\n':
+                    x, y = line.split('.')
                     p.set_cube_at(Painter.FULL_CUBE,
-                                  int(_.split('.')[0]), int(_.split('.')[1]))
+                                  int(x), int(y))
                 elif p.current_level < p.levels - 1:
                     p.current_level += 1
                     p.change_level()
@@ -260,6 +215,53 @@ class Main(QMainWindow):
 
         self.prev_button_state = self.button_state.copy()
         self.painter.mode = int(self.button_state[tool][1])
+
+
+class NewForm(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        def create_label(x, y, text):
+            label = QLabel(self)
+            label.move(x, y)
+            label.setText(text)
+            label.setFont(QFont('', 10, QFont.Bold))
+            return label
+
+        def create_spin_box(x, y, minim, maxim):
+            sb = QSpinBox(self)
+            sb.move(x, y)
+            sb.setMinimum(minim)
+            sb.setMaximum(maxim)
+            return sb
+
+        def btn_click():
+            main_window.painter.initUI(
+                self.sbx.value(),
+                self.sby.value(),
+                self.sbn.value()
+            )
+            main_window.number_of_level.setMaximum(
+                main_window.painter.levels)
+            main_window.setCentralWidget(main_window.painter)
+            main_window.filename = ''
+            self.close()
+
+        self.label_size = create_label(95, 10, 'Size')
+        self.sbx = create_spin_box(65, 35, 10, 50)
+        self.label_x = create_label(108, 38, 'x')
+        self.sby = create_spin_box(120, 35, 10, 50)
+        self.labelcx = create_label(77, 58, 'X')
+        self.labelcy = create_label(132, 58, 'Y')
+        self.label_num = create_label(10, 83,
+                                      'Number of levels (1-15):')
+        self.sbn = create_spin_box(179, 81, 1, 15)
+        self.btn = QPushButton('OK', self)
+        self.btn.clicked.connect(btn_click)
+        self.btn.move(70, 110)
+        self.setGeometry(340, 340, 230, 140)
+        self.setWindowTitle('New Levels Settings')
+        self.setFocus()
 
 
 class Painter(QWidget):

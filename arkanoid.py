@@ -39,7 +39,7 @@ class Board(QFrame):
         return self.board[(y * Board.BoardWidth) + x]
 
     def set_cube_at(self, cube, x, y):
-        if x != Board.BoardWidth and x >= 0:
+        if 0 <= x < Board.BoardWidth:
             self.board[(y * Board.BoardWidth) + x] = cube
 
     def platform_move(self):
