@@ -97,6 +97,11 @@ class Board(QFrame):
             self.try_move(1)
             return
 
+    def output_score(self):
+        self.parent.scores.setText("    " + str(self.current_level + 1) +
+                                   " (" + str(self.cycle) + ")\n      " +
+                                   str(self.score))
+
     def try_move(self, new_x):
         x = self.platform_x + new_x
         bottom = Board.BoardHeight - 1
@@ -130,9 +135,7 @@ class Board(QFrame):
                                  new_x == 1):
                 self.timer.stop()
                 self.score += 10000
-                self.parent.scores.setText("    " + str(self.current_level + 1) +
-                                           " (" + str(self.cycle) + ")\n      " +
-                                           str(self.score))
+                self.output_score()
 
                 if self.bonus_flag == 0:
                     self.bonus_flag = 1
@@ -162,9 +165,7 @@ class Board(QFrame):
             s.set_cube_at(Board.EMPTY_CUBE, pos_x, pos_y)
             s.score += 1
 
-            self.parent.scores.setText("    " + str(self.current_level + 1) +
-                                       " (" + str(self.cycle) + ")\n      " +
-                                       str(self.score))
+            self.output_score()
 
             self.current_level_counts -= 1
             if self.current_level_counts == 0:
@@ -257,7 +258,6 @@ class Board(QFrame):
 
         ball_movement(self, x, y)
 
-
     class EndOfLvlException(Exception):
         pass
 
@@ -267,9 +267,7 @@ class Board(QFrame):
                 self.move_ball()
             except self.EndOfLvlException:  # game over
                 self.current_level += 1
-                self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
-                                           str(self.cycle) + ")\n      "
-                                           + str(self.score))
+                self.output_score()
                 self.new_lvl()
         else:
             super(Board, self).timerEvent(event)
@@ -300,7 +298,8 @@ class Board(QFrame):
 
             for _ in f:
                 if _ != '$$$\n':
-                    Board.init_spots[self.current_level].append(((int(_.split('.')[0])), (int(_.split('.')[1]))))
+                    Board.init_spots[self.current_level].append(
+                        ((int(_.split('.')[0])), (int(_.split('.')[1]))))
                     # number of counts of lvl
                     Board.counts[self.current_level] += 1
                 elif self.current_level < Board.lvl - 1:
@@ -324,9 +323,7 @@ class Board(QFrame):
         if self.current_level == Board.lvl:
             self.current_level = 0
             self.cycle += 1
-            self.parent.scores.setText("    " + str(self.current_level + 1) +
-                                       " (" + str(self.cycle) + ")\n      " +
-                                       str(self.score))
+            self.output_score()
             self.speed //= 2
 
         for x, y in Board.init_spots[self.current_level]:
@@ -335,9 +332,7 @@ class Board(QFrame):
         self.current_level_counts = Board.counts[self.current_level]
         self.set_cube_at(Board.FULL_CUBE, *self.ball.get_coords())
         self.timer.start(self.speed, self)
-        self.parent.scores.setText("    " + str(self.current_level + 1) +
-                                   " (" + str(self.cycle) + ")\n      " +
-                                   str(self.score))
+        self.output_score()
 
     def pause(self):
         if self.gameover == 1:
