@@ -22,12 +22,15 @@ class Main(QMainWindow):
         self.filename = ''
 
         # active 0 state, disable 0 state etc
-        self.button_state_list = {'a0':0, 'd0':1, 'a1':2, 'd1':3, 'a2':4, 'd2':5}
+        self.button_state_list = {'a0': 0, 'd0': 1,
+                                  'a1': 2, 'd1': 3,
+                                  'a2': 4, 'd2': 5}
 
         #state of each button tool
         self.button_state = ['d2', 'd2', 'a2']
         self.prev_button_state = [None, None, None]
 
+        # self.icons = [[point01, point11], [brush01, brush11], etc
         self.icons = []
         for i in range(3):
             self.icons.append([])
