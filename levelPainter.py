@@ -20,26 +20,7 @@ class Main(QMainWindow):
     def initUI(self):
         self.painter = Painter()
         self.filename = ''
-
-        # active 0 state, disable 0 state etc
-        self.button_state_list = {'a0': 0, 'd0': 1,
-                                  'a1': 2, 'd1': 3,
-                                  'a2': 4, 'd2': 5}
-
-        #state of each button tool
-        self.button_state = ['d2', 'd2', 'a2']
-        self.prev_button_state = [None, None, None]
-
-        # self.icons = [[point01, point11], [brush01, brush11], etc
-        self.icons = []
-        for i in range(3):
-            self.icons.append([])
-        for n, item in [[0, 'point'], [1, 'brush'], [2, 'rect']]:
-            for i in range(3):
-                for j in range(2):
-                    self.icons[n].append(
-                        QIcon(os.path.join(os.getcwd(),
-                        'pics', item + str(i) + str(j) + '.png')))
+        self.buttons = Buttons()
 
         def create_toolbar_action(name, function):
             qaction = QAction('&' + name, self)
@@ -178,9 +159,10 @@ class Main(QMainWindow):
 
     def change_buttons_image(self):
         def foo(i, action):
-            state = self.button_state[i]
-            if state != self.prev_button_state[i]:
-                action.setIcon(self.icons[i][self.button_state_list.get(state)])
+            button = self.buttons.items[i]
+            if button.is_changed():
+                action.setIcon(button.get_icon())
+                button.change_state()
 
         foo(POINT, self.point_action)
         foo(BRUSH, self.brush_action)
@@ -190,18 +172,17 @@ class Main(QMainWindow):
         # next active state of current tool
         def next_button_state():
             self.painter.mode = (self.painter.mode + 1) % 3
-            self.button_state[self.painter.tool] = 'a' + str(self.painter.mode)
+            self.buttons.items[tool].mode = self.painter.mode
 
         # new active tool
         def switch_to_active(tool):
             # freeze and disable current tool state
-            self.button_state[self.painter.tool] = 'd' + \
-                                self.button_state[self.painter.tool][1]
+            self.buttons.items[self.painter.tool].enabled = False
             # set new active state
-            self.button_state[tool] = 'a' + self.button_state[tool][1]
+            self.buttons.items[tool].enabled = True
             self.painter.tool = tool
 
-        if self.button_state[tool][0] == 'a':
+        if self.buttons.items[tool].enabled is True:
             next_button_state()
         else:
             switch_to_active(tool)
@@ -213,8 +194,38 @@ class Main(QMainWindow):
             else:
                 self.painter.rectangle_mode = FULL
 
-        self.prev_button_state = self.button_state.copy()
-        self.painter.mode = int(self.button_state[tool][1])
+
+class Buttons():
+    def __init__(self):
+        btn_point = Button('point', False, INVERT)
+        btn_brush = Button('brush', False, INVERT)
+        btn_rect = Button('rect', True, INVERT)
+        self.items = [btn_point, btn_brush, btn_rect]
+
+
+class Button():
+    def __init__(self, tool, enabled, mode):
+        self.enabled = enabled
+        self.enabled_prev = not enabled  # for first draw
+        self.mode = mode
+        self.mode_prev = mode
+        self.icons = []    # array 3 x 2
+        for i in range(3):
+            self.icons.append([])
+            for j in range(2):
+                self.icons[i].append(
+                    QIcon(os.path.join(os.getcwd(),
+                    'pics', tool + str(i) + str(j) + '.png')))
+
+    def get_icon(self):
+        return self.icons[self.mode][self.enabled]
+
+    def is_changed(self):
+        return self.enabled != self.enabled_prev or self.mode != self.mode_prev
+
+    def change_state(self):
+        self.enabled_prev = self.enabled
+        self.mode_prev = self.mode
 
 
 class NewForm(QWidget):
