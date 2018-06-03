@@ -1,8 +1,8 @@
 import sys
 import os
 
-from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, QFileDialog, \
-    QAction, QColorDialog, QLabel, QGridLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication, \
+    QFileDialog, QAction, QColorDialog, QLabel, QGridLayout, QWidget
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QPixmap
 
@@ -61,22 +61,24 @@ class Board(QFrame):
         return self.contentsRect().height() // Board.BoardHeight
 
     def paintEvent(self, QPaintEvent):
-        """Reoaint all board except bottom line"""
+        """Repaint all board except bottom line"""
         painter = QPainter(self)
         rect = self.contentsRect()
-        boardTop = rect.bottom() - Board.BoardHeight * self.get_square_height()
+        board_top = rect.bottom() - Board.BoardHeight * self.get_square_height()
 
         for i in range(Board.BoardHeight):
             for j in range(Board.BoardWidth):
-                if i == (self.ball.cur_y) and j == self.ball.cur_x:  # paint ball
-                    self.draw_square(painter, rect.left() + j * self.get_square_width(),
-                                     boardTop + i * self.get_square_height(), "ball")
+                if i == self.ball.cur_y and j == self.ball.cur_x:  # paint ball
+                    self.draw_square(painter,
+                                     rect.left() + j * self.get_square_width(),
+                                     board_top + i * self.get_square_height(),
+                                     "ball")
                 else:
                     cube = self.what_at(j, i)
                     if cube != Board.EMPTY_CUBE:
                         self.draw_square(painter,
                                          rect.left() + j * self.get_square_width(),
-                                         boardTop + i * self.get_square_height())
+                                         board_top + i * self.get_square_height())
 
     def keyPressEvent(self, event):
         if not self.is_started:
@@ -89,14 +91,14 @@ class Board(QFrame):
         if self.gameover == 1:
             return
         if key == Qt.Key_Left:
-            self.tryMove(-1)
+            self.try_move(-1)
             return
         elif key == Qt.Key_Right:
-            self.tryMove(1)
+            self.try_move(1)
             return
 
-    def tryMove(self, newX):
-        x = self.platform_x + newX
+    def try_move(self, new_x):
+        x = self.platform_x + new_x
         bottom = Board.BoardHeight - 1
 
         if x < 0 or (x + Board.platform_length) > Board.BoardWidth:
@@ -104,30 +106,33 @@ class Board(QFrame):
 
         b = self.ball
 
-        #if ball on the line above platform
+        # if ball on the line above platform
         if b.cur_y == bottom - 1:
-            bP = self.bounce_platform()
-            #move ball if it on the platform
-            if bP:
-                if bP == 1:
+            b_p = self.bounce_platform()
+            # move ball if it on the platform
+            if b_p:
+                if b_p == 1:
                     self.set_cube_at(Board.EMPTY_CUBE, b.cur_x, b.cur_y)
-                    b.cur_x += newX
+                    b.cur_x += new_x
                     self.set_cube_at(Board.FULL_CUBE, b.cur_x, b.cur_y)
-                #change direction
-                if newX == -1 and b.direction == Ball.RD or \
-                                        newX == 1 and b.direction == Ball.LD or \
-                                bP == 2 or bP == 3:
+                # change direction
+                if new_x == -1 and b.direction == Ball.RD or \
+                            new_x == 1 and b.direction == Ball.LD or \
+                            b_p == 2 or \
+                            b_p == 3:
                     b.reflection()
 
-        #bonus
+        # bonus
         if b.cur_y == bottom:
-            if (b.cur_x == 0 and self.platform_x == 1 and newX == -1) or \
-                    (b.cur_x == Board.BoardWidth - 1 and x + Board.platform_length == b.cur_x + 1 and newX == 1):
+            if (b.cur_x == 0 and self.platform_x == 1 and new_x == -1) or \
+                    (b.cur_x == Board.BoardWidth - 1 and
+                                 x + Board.platform_length == b.cur_x + 1 and
+                                 new_x == 1):
                 self.timer.stop()
                 self.score += 10000
-                self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
-                                           str(self.cycle) + ")\n      "
-                                           + str(self.score))
+                self.parent.scores.setText("    " + str(self.current_level + 1) +
+                                           " (" + str(self.cycle) + ")\n      " +
+                                           str(self.score))
 
                 if self.bonus_flag == 0:
                     self.bonus_flag = 1
@@ -141,34 +146,33 @@ class Board(QFrame):
         self.update()
         return True
 
-
-    def moveBall(self):
+    def move_ball(self):
         # ball's movement at every tick
         bottom = Board.BoardHeight - 1
         b = self.ball
         x, y = b.get_coords()
         d = b.get_direction()
         nx, ny = b.next_xy()
-        #flag if bounce around more then one
+        # flag if bounce around more then one
         flag_twice = 1
 
-        def set_empty_cube_and_flag(s, x, y):
+        def set_empty_cube_and_flag(s, pos_x, pos_y):
             nonlocal flag_twice
             flag_twice += 1
-            s.set_cube_at(Board.EMPTY_CUBE, x, y)
+            s.set_cube_at(Board.EMPTY_CUBE, pos_x, pos_y)
             s.score += 1
 
-            self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
-                                       str(self.cycle) + ")\n      "
-                                       + str(self.score))
+            self.parent.scores.setText("    " + str(self.current_level + 1) +
+                                       " (" + str(self.cycle) + ")\n      " +
+                                       str(self.score))
 
             self.current_level_counts -= 1
             if self.current_level_counts == 0:
                 raise self.EndOfLvlException()
 
-        def ball_movement(s, x, y):
+        def ball_movement(s, pos_x, pos_y):
             nonlocal b
-            s.set_cube_at(Board.EMPTY_CUBE, x, y)
+            s.set_cube_at(Board.EMPTY_CUBE, pos_x, pos_y)
             b.set_coords(*b.next_xy())
             s.set_cube_at(Board.FULL_CUBE, *b.get_coords())
             s.update()
@@ -192,7 +196,7 @@ class Board(QFrame):
             game_over(self)
             return
 
-        if (nx == Board.BoardWidth or nx == -1) and ny == -1: #upper corners
+        if (nx == Board.BoardWidth or nx == -1) and ny == -1:  # upper corners
             b.reflection()
         elif ny == -1:
             b.rebound_top()
@@ -202,14 +206,14 @@ class Board(QFrame):
             b.rebound_left()
 
         elif ny == bottom:
-            bP = self.bounce_platform()
-            if bP == 2 or bP == 3:
+            b_p = self.bounce_platform()
+            if b_p == 2 or b_p == 3:
                 b.reflection()
-            elif bP == 1:
+            elif b_p == 1:
                 b.rebound_bottom()
             else:
                 ball_movement(self, x, y)
-                if nx == Board.BoardWidth -1 or nx == 0:
+                if nx == Board.BoardWidth - 1 or nx == 0:
                     pass
                 else:
                     game_over(self)
@@ -217,7 +221,7 @@ class Board(QFrame):
         else:
             flag_twice = 0
 
-        #if ball not bounce at border
+        # if ball not bounce at border
         if flag_twice == 0:
             if self.what_at(nx, ny) == Board.FULL_CUBE:
                 b.reflection()
@@ -257,16 +261,10 @@ class Board(QFrame):
     class EndOfLvlException(Exception):
         pass
 
-
-    def clearBoard(self):
-        for i in range(Board.BoardHeight * Board.BoardWidth):
-            self.board.append(Board.EMPTY_CUBE)
-
-
     def timerEvent(self, event):
         if event.timerId() == self.timer.timerId():
             try:
-                self.moveBall()
+                self.move_ball()
             except self.EndOfLvlException:  # game over
                 self.current_level += 1
                 self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
@@ -293,7 +291,7 @@ class Board(QFrame):
             self.platform_x = Board.BoardWidth // 3
             Board.platform_length = Board.BoardWidth // 3
             self.init_ball_x = self.platform_x + self.platform_length // 2
-            #set iniyY = first line above platform
+            # set iniyY = first line above platform
             self.init_ball_y = Board.BoardHeight - 2
 
             for i in range(Board.lvl):
@@ -303,7 +301,7 @@ class Board(QFrame):
             for _ in f:
                 if _ != '$$$\n':
                     Board.init_spots[self.current_level].append(((int(_.split('.')[0])), (int(_.split('.')[1]))))
-                    #number of counts of lvl
+                    # number of counts of lvl
                     Board.counts[self.current_level] += 1
                 elif self.current_level < Board.lvl - 1:
                     self.current_level += 1
@@ -316,19 +314,20 @@ class Board(QFrame):
     def new_lvl(self):
         self.current_level_counts = 0
         self.board = []
-        self.clearBoard()
+        for i in range(Board.BoardHeight * Board.BoardWidth):
+            self.board.append(Board.EMPTY_CUBE)
         self.platform_move()
         self.ball.set_coords(self.init_ball_x, self.init_ball_y)
         self.ball.set_direction(Ball.RU)
 
-        #next iteration of game
+        # next iteration of game
         if self.current_level == Board.lvl:
             self.current_level = 0
             self.cycle += 1
-            self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
-                                       str(self.cycle) + ")\n      "
-                                       + str(self.score))
-            self.speed = self.speed // 2
+            self.parent.scores.setText("    " + str(self.current_level + 1) +
+                                       " (" + str(self.cycle) + ")\n      " +
+                                       str(self.score))
+            self.speed //= 2
 
         for x, y in Board.init_spots[self.current_level]:
             self.set_cube_at(Board.FULL_CUBE, x, y)
@@ -336,9 +335,9 @@ class Board(QFrame):
         self.current_level_counts = Board.counts[self.current_level]
         self.set_cube_at(Board.FULL_CUBE, *self.ball.get_coords())
         self.timer.start(self.speed, self)
-        self.parent.scores.setText("    " + str(self.current_level + 1) + " (" +
-                                   str(self.cycle) + ")\n      "
-                                   + str(self.score))
+        self.parent.scores.setText("    " + str(self.current_level + 1) +
+                                   " (" + str(self.cycle) + ")\n      " +
+                                   str(self.score))
 
     def pause(self):
         if self.gameover == 1:
@@ -354,8 +353,8 @@ class Board(QFrame):
             self.parent.pause.setStyleSheet("")
         self.update()
 
-    def draw_square(self, painter, x, y, type ="cube"):
-        if type != "ball":
+    def draw_square(self, painter, x, y, obj="cube"):
+        if obj != "ball":
             color = Board.cubes_color
         else:
             color = Board.ball_color
@@ -366,9 +365,11 @@ class Board(QFrame):
         painter.drawLine(x, y, x + self.get_square_width() - 1, y)
         painter.setPen(color.darker())
         painter.drawLine(x + 1, y + self.get_square_height() - 1,
-                         x + self.get_square_width() - 1, y + self.get_square_height() - 1)
+                         x + self.get_square_width() - 1, y +
+                         self.get_square_height() - 1)
         painter.drawLine(x + self.get_square_width() - 1,
-                         y + self.get_square_height() - 1, x + self.get_square_width() - 1, y + 1)
+                         y + self.get_square_height() - 1, x +
+                         self.get_square_width() - 1, y + 1)
 
     def bounce_platform(self):
         """
@@ -382,18 +383,21 @@ class Board(QFrame):
 
         """
         b = self.ball
-        if b.cur_x in range(self.platform_x, self.platform_x + self.platform_length): #ball on platform
+        if b.cur_x in range(self.platform_x, self.platform_x +
+                self.platform_length):  # ball on platform
             return 1
-        elif b.cur_x == self.platform_x - 1 and b.direction == Ball.RD: #left corner
+        elif b.cur_x == self.platform_x - 1 and b.direction == Ball.RD:
+            # left corner
             return 2
-        elif b.cur_x == self.platform_x + self.platform_length and b.direction == Ball.LD: #right corner
+        elif b.cur_x == self.platform_x + self.platform_length and \
+                        b.direction == Ball.LD:  # right corner
             return 3
         return 0
 
 
 class Ball():
 
-    RU = 0 #Right Up
+    RU = 0  # Right Up
     RD = 1
     LU = 2
     LD = 3
@@ -430,22 +434,26 @@ class Ball():
     def rebound_top(self):
         if self.direction == Ball.RU:
             self.direction = Ball.RD
-        else: self.direction = Ball.LD
+        else:
+            self.direction = Ball.LD
 
     def rebound_bottom(self):
         if self.direction == Ball.RD:
             self.direction = Ball.RU
-        else: self.direction = Ball.LU
+        else:
+            self.direction = Ball.LU
 
     def rebound_right(self):
         if self.direction == Ball.RU:
             self.direction = Ball.LU
-        else: self.direction = Ball.LD
+        else:
+            self.direction = Ball.LD
 
     def rebound_left(self):
         if self.direction == Ball.LU:
             self.direction = Ball.RU
-        else: self.direction = Ball.RD
+        else:
+            self.direction = Ball.RD
 
     def reflection(self):
         d = self.direction
@@ -467,7 +475,7 @@ class Arkanoid(QMainWindow):
 
     def init_ui(self):
 
-        def create_action(name, function, shortcut = ''):
+        def create_action(name, function, shortcut=''):
             qaction = QAction(name, self)
             qaction.setShortcut(shortcut)
             qaction.triggered.connect(function)
@@ -487,16 +495,16 @@ class Arkanoid(QMainWindow):
 
         menubar = self.menuBar()
         menubar.addAction(new_g)
-        speedMenu = menubar.addMenu('&Speed')
+        speed_menu = menubar.addMenu('&Speed')
 
-        speedMenu.addAction(speed1)
-        speedMenu.addAction(speed2)
-        speedMenu.addAction(speed3)
+        speed_menu.addAction(speed1)
+        speed_menu.addAction(speed2)
+        speed_menu.addAction(speed3)
 
-        colMenu = menubar.addMenu('&Color')
+        col_menu = menubar.addMenu('&Color')
 
-        colMenu.addAction(col_cube)
-        colMenu.addAction(col_ball)
+        col_menu.addAction(col_cube)
+        col_menu.addAction(col_ball)
 
         self.center()
         self.setWindowTitle('Arkanoid')
@@ -534,7 +542,7 @@ class Arkanoid(QMainWindow):
     def new_game(self):
         self.pause_game()
 
-        pic_life = QPixmap(os.path.join(os.getcwd(),'pics','life.png'))
+        pic_life = QPixmap(os.path.join(os.getcwd(), 'pics', 'life.png'))
 
         self.life = QLabel()
         pixmap = pic_life
@@ -584,7 +592,7 @@ class Arkanoid(QMainWindow):
         screen = QDesktopWidget().screenGeometry()
         size = self.geometry()
         self.move((screen.width()-size.width())/4,
-                   (screen.height()-size.height() - self.height())/4 )
+                  (screen.height()-size.height() - self.height())/4)
 
 if __name__ == '__main__':
     app = QApplication([])
