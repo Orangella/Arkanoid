@@ -11,6 +11,7 @@ POINT, BRUSH, RECTANGLE = [0, 1, 2]
 # modes
 EMPTY, FULL, INVERT = [0, 1, 2]
 
+
 class Main(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -27,20 +28,18 @@ class Main(QMainWindow):
         self.button_state = ['d2', 'd2', 'a2']
         self.prev_button_state = [None, None, None]
 
-        self.icons = [
-            [QIcon(os.path.join(os.getcwd(),'pics', 'point0.png')), QIcon(os.path.join(os.getcwd(),'pics', 'point01.png')),
-             QIcon(os.path.join(os.getcwd(),'pics', 'point1.png')), QIcon(os.path.join(os.getcwd(),'pics', 'point11.png')),
-             QIcon(os.path.join(os.getcwd(),'pics', 'point2.png')), QIcon(os.path.join(os.getcwd(),'pics', 'point21.png'))],
-            [QIcon(os.path.join(os.getcwd(), 'pics', 'brush0.png')), QIcon(os.path.join(os.getcwd(), 'pics', 'brush01.png')),
-             QIcon(os.path.join(os.getcwd(), 'pics', 'brush1.png')), QIcon(os.path.join(os.getcwd(), 'pics', 'brush11.png')),
-             QIcon(os.path.join(os.getcwd(), 'pics', 'brush2.png')), QIcon(os.path.join(os.getcwd(), 'pics', 'brush21.png'))],
-            [QIcon(os.path.join(os.getcwd(), 'pics', 'rect0.png')), QIcon(os.path.join(os.getcwd(), 'pics', 'rect01.png')),
-             QIcon(os.path.join(os.getcwd(), 'pics', 'rect1.png')), QIcon(os.path.join(os.getcwd(), 'pics', 'rect11.png')),
-             QIcon(os.path.join(os.getcwd(), 'pics', 'rect2.png')), QIcon(os.path.join(os.getcwd(), 'pics', 'rect21.png'))]
-        ]
+        self.icons = []
+        for i in range(3):
+            self.icons.append([])
+        for n, item in [[0, 'point'], [1, 'brush'], [2, 'rect']]:
+            for i in range(3):
+                for j in range(2):
+                    self.icons[n].append(
+                        QIcon(os.path.join(os.getcwd(),
+                        'pics', item + str(i) + str(j) + '.png')))
 
         def create_toolbar_action(name, function):
-            qaction = QAction('&' +name, self)
+            qaction = QAction('&' + name, self)
             qaction.triggered.connect(function)
             self.toolbar = self.addToolBar(name)
             self.toolbar.addAction(qaction)
@@ -69,7 +68,7 @@ class Main(QMainWindow):
 
         menubar = self.menuBar()
 
-        def create_action(name, function, shortcut = ''):
+        def create_action(name, function, shortcut=''):
             qaction = QAction(name, self)
             qaction.setShortcut(shortcut)
             qaction.triggered.connect(function)
@@ -78,26 +77,25 @@ class Main(QMainWindow):
         new = create_action('New', self.new_action, 'Ctrl+N')
         load = create_action('Load', self.load_action, 'Ctrl+L')
         save = create_action('Save', self.save_action, 'Ctrl+S')
-        saveAs = create_action('Save As', self.save_as_action)
+        save_as = create_action('Save As', self.save_as_action)
 
-        fileMenu = menubar.addMenu('&File')
-        fileMenu.addAction(new)
-        fileMenu.addAction(load)
-        fileMenu.addAction(save)
-        fileMenu.addAction(saveAs)
+        file_menu = menubar.addMenu('&File')
+        file_menu.addAction(new)
+        file_menu.addAction(load)
+        file_menu.addAction(save)
+        file_menu.addAction(save_as)
 
         col_cube = create_action('Cells', self.color_cube)
 
-        colMenu = menubar.addMenu('&Color')
-        colMenu.addAction(col_cube)
+        col_menu = menubar.addMenu('&Color')
+        col_menu.addAction(col_cube)
 
         self.setGeometry(300, 300, 200, 230)
         self.setWindowTitle('Level Painter')
         self.show()
 
-
     def new_action(self):
-        class newForm(QWidget):
+        class NewForm(QWidget):
             def __init__(self):
                 super().__init__()
 
@@ -121,7 +119,8 @@ class Main(QMainWindow):
                         self.sby.value(),
                         self.sbn.value()
                     )
-                    main_window.number_of_level.setMaximum(main_window.painter.levels)
+                    main_window.number_of_level.setMaximum(
+                        main_window.painter.levels)
                     main_window.setCentralWidget(main_window.painter)
                     main_window.filename = ''
                     self.close()
@@ -132,21 +131,18 @@ class Main(QMainWindow):
                 self.sby = create_spin_box(120, 35, 10, 50)
                 self.labelcx = create_label(77, 58, 'X')
                 self.labelcy = create_label(132, 58, 'Y')
-
-                self.label_num = create_label(10, 83, 'Number of levels (1-15):')
+                self.label_num = create_label(10, 83,
+                                              'Number of levels (1-15):')
                 self.sbn = create_spin_box(179, 81, 1, 15)
-
                 self.btn = QPushButton('OK', self)
                 self.btn.clicked.connect(btn_click)
                 self.btn.move(70, 110)
-
                 self.setGeometry(340, 340, 230, 140)
                 self.setWindowTitle('New Levels Settings')
                 self.setFocus()
 
-        self.new_form = newForm()
+        self.new_form = NewForm()
         self.new_form.show()
-
 
     def load_action(self):
         fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
@@ -165,7 +161,8 @@ class Main(QMainWindow):
             p.current_level = 0
             for _ in f:
                 if _ != '$$$\n':
-                    p.set_cube_at(Painter.FULL_CUBE, int(_.split('.')[0]), int(_.split('.')[1]))
+                    p.set_cube_at(Painter.FULL_CUBE,
+                                  int(_.split('.')[0]), int(_.split('.')[1]))
                 elif p.current_level < p.levels - 1:
                     p.current_level += 1
                     p.change_level()
@@ -173,7 +170,6 @@ class Main(QMainWindow):
         p.change_level()
         self.number_of_level.setMaximum(self.painter.levels)
         self.setCentralWidget(p)
-
 
     def save_action(self):
         if not hasattr(self.painter, 'boards'):
@@ -200,13 +196,13 @@ class Main(QMainWindow):
         if not hasattr(self.painter, 'boards'):
             return
 
-        fname = QFileDialog.getSaveFileName(self, 'Save File', 'new.ark','Arkanoid (*.ark)')[0]
+        fname = QFileDialog.getSaveFileName(self, 'Save File', 'new.ark',
+                                            'Arkanoid (*.ark)')[0]
         if fname:
             self.filename = fname
             self.save_action()
         else:
             return
-
 
     def color_cube(self):
         col = QColorDialog.getColor()
@@ -241,7 +237,8 @@ class Main(QMainWindow):
         # new active tool
         def switch_to_active(tool):
             # freeze and disable current tool state
-            self.button_state[self.painter.tool] = 'd' + self.button_state[self.painter.tool][1]
+            self.button_state[self.painter.tool] = 'd' + \
+                                self.button_state[self.painter.tool][1]
             # set new active state
             self.button_state[tool] = 'a' + self.button_state[tool][1]
             self.painter.tool = tool
@@ -251,7 +248,7 @@ class Main(QMainWindow):
         else:
             switch_to_active(tool)
         self.change_buttons_image()
-        #rectangle_mode for rectangle
+        # rectangle_mode for rectangle
         if self.painter.tool == RECTANGLE:
             if self.painter.mode == EMPTY:
                 self.painter.rectangle_mode = EMPTY
@@ -272,9 +269,9 @@ class Painter(QWidget):
 
     def __init__(self):
         super().__init__()
-        #tools: 0 - point, 1 - brush, 2 - rectangle
+        # tools: 0 - point, 1 - brush, 2 - rectangle
         self.tool = RECTANGLE
-        #mode: 0 - empty, 1 - full, 2 - invert
+        # mode: 0 - empty, 1 - full, 2 - invert
         self.mode = INVERT
         self.levels = 1
 
@@ -294,10 +291,11 @@ class Painter(QWidget):
         self.prevCube = None
         self.startCube = None
 
-        self.rectangle_mode = FULL  # filling or disfilling rectangle
+        self.rectangle_mode = FULL  # filling or erasing rectangle
         self.states_under_rect = {}
-        self.flag_move = False  # if mouse move at other cell (for rectangle mode draw point on single click)
-
+        # if mouse move at other cell
+        # (for rectangle mode draw point on single click)
+        self.flag_move = False
 
     def change_level(self):
         self.board = self.boards[self.current_level]
@@ -322,78 +320,80 @@ class Painter(QWidget):
         else:
             self.set_cube_at(Painter.EMPTY_CUBE, x, y)
 
-    def squareWidth(self):
+    def square_width(self):
         return self.contentsRect().width() // self.width
 
-    def squareHeight(self):
+    def square_height(self):
         return self.contentsRect().height() // self.height
 
     def paintEvent(self, QPaintEvent):
         painter = QPainter(self)
         rect = self.contentsRect()
-        boardTop = rect.bottom() - self.height * self.squareHeight()
+        board_top = rect.bottom() - self.height * self.square_height()
         for i in range(self.height):
             for j in range(self.width):
                     cube = self.what_at(j, i)
                     if cube == Painter.EMPTY_CUBE:
-                        self.drawSquare(painter,
-                                        rect.left() + j * self.squareWidth(),
-                                        boardTop + i * self.squareHeight())
+                        self.draw_square(painter,
+                                         rect.left() + j * self.square_width(),
+                                         board_top + i * self.square_height())
                     else:
-                        self.drawSquare(painter,
-                                        rect.left() + j * self.squareWidth(),
-                                        boardTop + i * self.squareHeight(), "full")
+                        self.draw_square(painter,
+                                         rect.left() + j * self.square_width(),
+                                         board_top + i * self.square_height(),
+                                         "full")
 
-    def drawSquare(self, painter, x, y, type = "e"):
+    def draw_square(self, painter, x, y, fill="emp"):
         color1 = QColor(0xC0C0C0)
-        if type == "e":
+        if fill == "emp":
             color2 = QColor(0xFFFFFF)
         else:
             color2 = Painter.CELL_COLOR
 
-        painter.fillRect(x + 1, y + 1, self.squareWidth() - 2,
-            self.squareHeight() - 2, color2)
+        painter.fillRect(x + 1, y + 1, self.square_width() - 2,
+                         self.square_height() - 2, color2)
         painter.setPen(color1)
-        painter.drawLine(x, y + self.squareHeight() - 1, x, y)
-        painter.drawLine(x, y, x + self.squareWidth() - 1, y)
-        painter.drawLine(x + 1, y + self.squareHeight() - 1,
-            x + self.squareWidth() - 1, y + self.squareHeight() - 1)
-        painter.drawLine(x + self.squareWidth() - 1,
-            y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
+        painter.drawLine(x, y + self.square_height() - 1, x, y)
+        painter.drawLine(x, y, x + self.square_width() - 1, y)
+        painter.drawLine(x + 1, y + self.square_height() - 1,
+                         x + self.square_width() - 1, y + self.square_height() - 1)
+        painter.drawLine(x + self.square_width() - 1,
+                         y + self.square_height() - 1, x + self.square_width() - 1, y + 1)
 
     def mousePressEvent(self, e):
         if e.button() != Qt.LeftButton:
             return
 
         rect = self.contentsRect()
-        boardTop = rect.bottom() - self.height * self.squareHeight()
-        curX = (e.x() - rect.left()) // self.squareWidth()
-        curY = (e.y() - boardTop ) // self.squareHeight()
+        board_top = rect.bottom() - self.height * self.square_height()
+        cur_x = (e.x() - rect.left()) // self.square_width()
+        cur_y = (e.y() - board_top) // self.square_height()
 
         if self.tool == RECTANGLE:
             self.flag_move = False
             self.states_under_rect = {}
 
             if self.mode == INVERT:
-                self.reverse_cube(curX, curY)
-                self.rectangle_mode = FULL if self.what_at(curX, curY) == Painter.FULL_CUBE else EMPTY
+                self.reverse_cube(cur_x, cur_y)
+                self.rectangle_mode = FULL \
+                    if self.what_at(cur_x, cur_y) == Painter.FULL_CUBE \
+                    else EMPTY
             elif self.mode == FULL:
-                self.set_cube_at(Painter.FULL_CUBE, curX, curY)
+                self.set_cube_at(Painter.FULL_CUBE, cur_x, cur_y)
             elif self.mode == EMPTY:
-                self.set_cube_at(Painter.EMPTY_CUBE, curX, curY)
-            self.startCube = (curX, curY)
-            self.prevCube = (curX, curY)
+                self.set_cube_at(Painter.EMPTY_CUBE, cur_x, cur_y)
+            self.startCube = (cur_x, cur_y)
+            self.prevCube = (cur_x, cur_y)
         elif self.tool == BRUSH or self.tool == POINT:
             if self.tool == BRUSH:
-                self.prevCube = (curX, curY)
+                self.prevCube = (cur_x, cur_y)
             if self.mode == INVERT:
-                self.reverse_cube(curX, curY)
+                self.reverse_cube(cur_x, cur_y)
             elif self.mode == FULL:
-                self.set_cube_at(Painter.FULL_CUBE, curX, curY)
+                self.set_cube_at(Painter.FULL_CUBE, cur_x, cur_y)
             elif self.mode == EMPTY:
-                self.set_cube_at(Painter.EMPTY_CUBE, curX, curY)
+                self.set_cube_at(Painter.EMPTY_CUBE, cur_x, cur_y)
         self.update()
-
 
     def mouseReleaseEvent(self, e):
         if e.button() != Qt.LeftButton:
@@ -401,12 +401,12 @@ class Painter(QWidget):
 
         if self.tool == RECTANGLE and self.flag_move:
             rect = self.contentsRect()
-            boardTop = rect.bottom() - self.height * self.squareHeight()
-            curX = (e.x() - rect.left()) // self.squareWidth()
-            curY = (e.y() - boardTop) // self.squareHeight()
+            board_top = rect.bottom() - self.height * self.square_height()
+            cur_x = (e.x() - rect.left()) // self.square_width()
+            cur_y = (e.y() - board_top) // self.square_height()
 
-            if self.startCube == (curX , curY):
-                self.reverse_cube(curX, curY)
+            if self.startCube == (cur_x, cur_y):
+                self.reverse_cube(cur_x, cur_y)
                 self.update()
 
     def mouseMoveEvent(self, e):
@@ -414,72 +414,76 @@ class Painter(QWidget):
             return
 
         rect = self.contentsRect()
-        boardTop = rect.bottom() - self.height * self.squareHeight()
-        curX = (e.x() - rect.left()) // self.squareWidth()
-        curY = (e.y() - boardTop) // self.squareHeight()
+        board_top = rect.bottom() - self.height * self.square_height()
+        cur_x = (e.x() - rect.left()) // self.square_width()
+        cur_y = (e.y() - board_top) // self.square_height()
 
         if (e.x() < 0) or (e.x() > rect.right()) or \
-                (e.y() <= (rect.bottom() - self.squareHeight() * self.height)) or \
+                (e.y() <= (rect.bottom() - self.square_height()
+                    * self.height)) or \
                 (e.y() > rect.bottom()):
             return
 
         if self.tool == POINT:
             return
         # not leave current cell
-        if self.prevCube == (curX, curY):
+        if self.prevCube == (cur_x, cur_y):
             return
         if self.tool == RECTANGLE:
             self.flag_move = True
             self.draw_rectangle(e)
         elif self.tool == BRUSH:
             if self.mode == INVERT:
-                self.reverse_cube(curX, curY)
+                self.reverse_cube(cur_x, cur_y)
             elif self.mode == FULL:
-                self.set_cube_at(Painter.FULL_CUBE, curX, curY)
+                self.set_cube_at(Painter.FULL_CUBE, cur_x, cur_y)
             elif self.mode == EMPTY:
-                self.set_cube_at(Painter.EMPTY_CUBE, curX, curY)
-            self.prevCube = (curX, curY)
+                self.set_cube_at(Painter.EMPTY_CUBE, cur_x, cur_y)
+            self.prevCube = (cur_x, cur_y)
         self.update()
         return
 
     def draw_rectangle(self, e):
         rect = self.contentsRect()
-        boardTop = rect.bottom() - self.height * self.squareHeight()
-        curX = (e.x() - rect.left()) // self.squareWidth()
-        curY = (e.y() - boardTop) // self.squareHeight()
+        boardTop = rect.bottom() - self.height * self.square_height()
+        curX = (e.x() - rect.left()) // self.square_width()
+        curY = (e.y() - boardTop) // self.square_height()
 
-        X = Painter.X
-        Y = Painter.Y
+        x = Painter.X
+        y = Painter.Y
 
-        #if compression
-        if curX < self.prevCube[X] and self.prevCube[X] > self.startCube[X] or \
-                                curX > self.prevCube[X] and self.prevCube[X] < self.startCube[X] or \
-                                curY < self.prevCube[Y] and self.prevCube[Y] > self.startCube[Y] or \
-                                curY > self.prevCube[Y] and self.prevCube[Y] < self.startCube[Y]:
-                self.compressionRectangle(curX, curY)
+        # if compression
+        if curX < self.prevCube[x] and self.prevCube[x] > self.startCube[x] or \
+                                curX > self.prevCube[x] and \
+                                self.prevCube[x] < self.startCube[x] or \
+                                curY < self.prevCube[y] and \
+                                self.prevCube[y] > self.startCube[y] or \
+                                curY > self.prevCube[y] and \
+                                self.prevCube[y] < self.startCube[y]:
+                self.compression_rectangle(curX, curY)
         else:
-            self.extensionRectangle(curX, curY)
+            self.extension_rectangle(curX, curY)
         self.prevCube = (curX, curY)
 
-    def compressionRectangle(self, curX, curY):
-        X = Painter.X
-        Y = Painter.Y
+    def compression_rectangle(self, cur_x, cur_y):
+        x = Painter.X
+        y = Painter.Y
 
-        if self.startCube[X] > curX:
-            side_x = curX - 1
-        elif self.startCube[X] == curX and self.prevCube[X] < self.startCube[X]:
-            side_x = curX - 1
+        if self.startCube[x] > cur_x:
+            side_x = cur_x - 1
+        elif self.startCube[x] == cur_x and self.prevCube[x] < self.startCube[x]:
+            side_x = cur_x - 1
         else:
-            side_x = curX + 1
+            side_x = cur_x + 1
 
-        if self.startCube[Y] > curY:
-            side_y = curY - 1
-        elif self.startCube[Y] == curY and self.prevCube[Y] < self.startCube[Y]:
-            side_y = self.prevCube[Y]
+        if self.startCube[y] > cur_y:
+            side_y = cur_y - 1
+        elif self.startCube[y] == cur_y and self.prevCube[y] < self.startCube[y]:
+            side_y = self.prevCube[y]
         else:
-            side_y = curY + 1 if curY != -1 else self.height
+            side_y = cur_y + 1 if cur_y != -1 else self.height
 
-        #return last states
+        # return last states
         del_from_states = []
         for k in self.states_under_rect.keys():
             if k[0] == side_x or k[1] == side_y:
@@ -490,33 +494,33 @@ class Painter(QWidget):
         for k in del_from_states:
             self.states_under_rect.pop(k)
 
-    def extensionRectangle(self,curX, curY):
-        X = Painter.X
-        Y = Painter.Y
+    def extension_rectangle(self, cur_x, cur_y):
+        x = Painter.X
+        y = Painter.Y
 
         if self.mode == EMPTY or self.rectangle_mode == EMPTY:
             filler = Painter.EMPTY_CUBE
         else:
             filler = Painter.FULL_CUBE
 
-        if self.startCube[0] > curX:
-            rangeX = range(curX, self.startCube[X] + 1)
+        if self.startCube[0] > cur_x:
+            range_x = range(cur_x, self.startCube[x] + 1)
         else:
-            rangeX = range(self.startCube[X], curX + 1)
+            range_x = range(self.startCube[x], cur_x + 1)
 
-        if self.startCube[1] > curY:
-            rangeY = range(curY, self.startCube[Y] + 1)
+        if self.startCube[1] > cur_y:
+            range_y = range(cur_y, self.startCube[y] + 1)
         else:
-            rangeY = range(self.startCube[Y], curY + 1)
+            range_y = range(self.startCube[y], cur_y + 1)
 
-        for i in rangeX:
-            if self.states_under_rect.get((i, curY)) == None:
-                self.states_under_rect[(i, curY)] = self.what_at(i, curY)
-                self.set_cube_at(filler, i, curY)
-        for j in rangeY:
-            if self.states_under_rect.get((curX, j)) == None:
-                self.states_under_rect[(curX, j)] = self.what_at(curX, j)
-                self.set_cube_at(filler, curX, j)
+        for i in range_x:
+            if self.states_under_rect.get((i, cur_y)) is None:
+                self.states_under_rect[(i, cur_y)] = self.what_at(i, cur_y)
+                self.set_cube_at(filler, i, cur_y)
+        for j in range_y:
+            if self.states_under_rect.get((cur_x, j)) is None:
+                self.states_under_rect[(cur_x, j)] = self.what_at(cur_x, j)
+                self.set_cube_at(filler, cur_x, j)
 
 
 if __name__ == '__main__':

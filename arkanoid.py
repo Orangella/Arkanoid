@@ -280,7 +280,8 @@ class Board(QFrame):
         self.cycle = 1
         self.gameover = 0
 
-        file_name = QFileDialog.getOpenFileName(self, 'Open file')[0]
+        file_name = QFileDialog.getOpenFileName(self, 'Open file',
+                                                filter = '*.ark')[0]
         with open(file_name, 'r') as f:
             Board.BoardWidth = int(f.readline())
             Board.BoardHeight = int(f.readline()) + 5
@@ -575,7 +576,9 @@ class Arkanoid(QMainWindow):
         self.board.new_game()
 
         grid.addWidget(self.board, 2, 0, 2, 9)
-        self.board.setStyleSheet("margin-bottom: 0; padding-top: -4px; padding-right: -4px;"
+        self.board.setStyleSheet("margin-bottom: 0; "
+                                 "padding-top: -4px; "
+                                 "padding-right: -4px;"
                                  "background-color: #f2f5f9;")
         self.setCentralWidget(QWidget())
         m = QWidget()
