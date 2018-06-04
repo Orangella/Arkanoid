@@ -1,4 +1,4 @@
-Arkanoid game (Python)
+Arkanoid game (Python, PyQT5)
 
 **arkanoid.py**
 * To play open .ark file (use levels.ark from repository or create your levels with level_painter.py)
